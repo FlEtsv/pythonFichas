@@ -1,18 +1,18 @@
 {
-    "nombre_dueño": "Steven",
-    "dni_dueño": "73516416K",
-    "nombre": "Fiul",
-    "tipo": "Chucho",
-    "raza": "12",
+    "nombre_dueño": "Ashley",
+    "dni_dueño": "73516416A",
+    "nombre": "Nilo",
+    "tipo": "Danes",
+    "raza": "3",
     "edad": "Perro",
     "historial_medico": [
         {
-            "fecha": "2022-01-15",
+            "fecha": "2022-01-01",
             "motivo": "Checkup",
             "descripcion": "Routine checkup, no issues found"
         },
         {
-            "fecha": "2022-02-15",
+            "fecha": "2022-02-01",
             "motivo": "Vaccination",
             "descripcion": "Administered annual vaccinations"
         }
