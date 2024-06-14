@@ -4,11 +4,13 @@ from tkinter import messagebox, ttk
 import tkinter
 
 from com.moduloB import mascotas
+from com.moduloB.mascotas import Animal
 
 # Cargamos las fichas a la clase
 mascotas.cargar_fichas_a_clase()
 #imprimimos las instancias de la clase animal
 mascotas.todas_las_fichas()
+
 
 def Registro():
     """
@@ -24,8 +26,8 @@ def Registro():
     """
     nombre_dueño = entry_nombre_dueño.get()
     dni_dueño = entry_dni_dueño.get()
-    tipo = entry_tipo_Animal.get()
     nombre = entry_nombre.get()
+    tipo = entry_tipo_Animal.get()
     raza = entry_raza.get()
     edad = entry_edad.get()
 
@@ -34,79 +36,94 @@ def Registro():
         return
 
     #verificamos que el dni del dueño no este registrado en las fichas
-    if mascotas.cargar_datos(dni_dueño, buscar_por='dni'):
+    if mascotas.Animal.cargar_datos(dni_dueño, 'dni'):
         messagebox.showerror("Error", "Ya existe un animal registrado con ese DNI")
         return
 
-    animal = mascotas.Animal(nombre_dueño, dni_dueño, nombre, raza, edad, tipo)
-    mascotas.guardar_datos(animal)
+    animal = Animal(nombre_dueño, dni_dueño, nombre, tipo, raza, edad)
+    try:
+        mascotas.guardar_datos(animal)
+        mascotas.cargar_fichas_a_clase()
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al guardar los datos: {e}")
+        return
+
 
     messagebox.showinfo("Éxito", "Los datos del animal se han guardado con éxito")
 
 def mostrar_Ficha_Animal():
-    """
-    Muestra la ficha de un animal en una nueva ventana
-    :param nombre: Nombre del animal
-    :param dni: DNI del dueño
-    :param buscar_por: 'nombre' o 'dni'
-    :param nombre_dueño: Nombre del dueño
-    :param dni_dueño: DNI del dueño
-    :param tipo: Tipo de animal
-    :param raza: Raza del animal
-    :param edad: Edad del animal
-    :param historial_medico: Historial médico del animal
-
-    :return:
-    """
     dni = entry_dni_dueño.get()
     nombre_animal = entry_nombre.get()
     if not dni:
         dates = mascotas.Animal.cargar_datos(nombre_animal, buscar_por='nombre')
-
     else:
         dates = mascotas.Animal.cargar_datos(dni, buscar_por='dni')
 
-    # Crear una nueva ventana para mostrar la ficha
     window = tk.Toplevel(root)
-    # damos un tamaño a la ventana
     window.geometry("400x400")
     window.title('Ficha mascota completa')
-    # Crear y empaquetar las etiquetas para los dates del animal
-    if dates is not None:
-        tk.Label(window, text=f'Nombre: {dates.nombre}').pack()
-        tk.Label(window, text=f'Raza: {dates.raza}').pack()
-        tk.Label(window, text=f'Edad: {dates.edad}').pack()
 
-        # Crear y empaquetar una etiqueta para el historial médico
-        tk.Label(window, text='Historial Médico:').pack()
+    canvas = tk.Canvas(window)
+    scrollbar = ttk.Scrollbar(window, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    if dates is not None:
+        tk.Label(scrollable_frame, text=f'Nombre: {dates.nombre}').grid(row=1, column=0, padx=10, pady=10)
+        tk.Label(scrollable_frame, text=f'Raza: {dates.raza}').grid(row=2, column=0, padx=10, pady=10)
+        tk.Label(scrollable_frame, text=f'Edad: {dates.edad}').grid(row=3, column=0, padx=10, pady=10)
+
+        tk.Label(scrollable_frame, text='Historial Médico:').grid(row=4, column=0, padx=10, pady=10)
 
         historial_medico = dates.historial_medico if hasattr(dates, 'historial_medico') else []
         if historial_medico:
             for i, registro in enumerate(historial_medico, 1):
-                tk.Label(window, text=f'Registro {i}:').pack()
-                tk.Label(window, text=f'Fecha: {registro["fecha"]}').pack()
-                tk.Label(window, text=f'Motivo: {registro["motivo"]}').pack()
-                tk.Label(window, text=f'Descripción: {registro["descripcion"]}').pack()
+                tk.Label(scrollable_frame, text=f'Registro {i}:').grid(row=5+i*4, column=0, padx=10, pady=10)
+                tk.Label(scrollable_frame, text=f'Fecha: {registro["fecha"]}').grid(row=6+i*4, column=0, padx=10, pady=10)
+                tk.Label(scrollable_frame, text=f'Motivo: {registro["motivo"]}').grid(row=7+i*4, column=0, padx=10, pady=10)
+                tk.Label(scrollable_frame, text=f'Descripción: {registro["descripcion"]}').grid(row=8+i*4, column=0, padx=10, pady=10)
         else:
-            tk.Label(window, text='No hay registros en el historial médico').pack()
+            tk.Label(scrollable_frame, text='No hay registros en el historial médico').grid(row=9, column=0, padx=10, pady=10)
     else:
-        tk.Label(window, text='No animal found with the given identifier.').pack()
+        tk.Label(scrollable_frame, text='No animal found with the given identifier.').grid(row=1, column=0, padx=10, pady=10)
 
-    #añadimos boton para añadir historial medico
+    button_añadir_historial = ttk.Button(scrollable_frame, text="Añadir historial", command=lambda: Añadir_historial_medico(dates))
+    button_añadir_historial.grid(row=10, column=0, padx=10, pady=10)
 
-    button_añadir_historial = ttk.Button(window, text="Añadir historial", command=lambda: Añadir_historial_medico(dates))
-    button_añadir_historial.pack()
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
 
-def Añadir_historial_medico(nombre):
+def Añadir_historial_medico(animal):
     """
     Añade un registro al historial médico de un animal
-    :param nombre: INSTANCIA DE LA CLASE ANIMAL
-    :param fecha: Fecha del registro
-    :param motivo: Motivo de la consulta
-    :param descripcion: Descripción de la consulta
+    :param animal: INSTANCIA DE LA CLASE ANIMAL
     :return:
     """
-    animal = nombre
+    def añadir_registro():
+
+        fecha = entry_fecha.get()
+        motivo = entry_motivo.get()
+        descripcion = entry_descripcion.get()
+        if not fecha or not motivo or not descripcion:
+            print('All fields must be filled.')
+            return
+
+        # Añadir el registro al historial médico
+        animal.historial_medico = animal.historial_medico if hasattr(animal, 'historial_medico') else []
+        #añadimos el historial medico
+        mascotas.añadir_historial(animal, fecha, motivo, descripcion)
+        print('Registro añadido con éxito')
+        mascotas.cargar_fichas_a_clase()
+        window.destroy()
 
     # Crear una nueva ventana para añadir el historial médico
     window = tk.Toplevel(root)
@@ -124,19 +141,20 @@ def Añadir_historial_medico(nombre):
     tk.Label(window, text='Descripción:').pack()
     entry_descripcion = tk.Entry(window)
     entry_descripcion.pack()
+    # Crear y empaquetar el botón de guardar
+    button_guardar_historial_medico = ttk.Button(window, text="Guardar", command=lambda: añadir_registro())
+    button_guardar_historial_medico.pack()
 
-    # instanciamos la clase animal con los datos del diccionario
-    if animal is not None:
-        animal = mascotas.Animal(animal.nombre_dueño, animal.dni_dueño, animal.nombre, animal.raza, animal.edad, animal.TipoAnimal)
-    else:
-        print('No animal found with the given identifier.')
-        return
-    # Añadir el registro al historial médico
-    animal.historial_medico = animal.historial_medico if hasattr(animal, 'historial_medico') else []
-    #añadimos el historial medico
-    mascotas.añadir_historial(animal, entry_fecha.get(), entry_motivo.get(), entry_descripcion.get())
-    print('Registro añadido con éxito')
+
+
+
+
+
+
+
+
     """
+
     Crear una interfaz gráfica con tkinter que permita registrar un animal y mostrar su ficha."""
 root = tk.Tk()
 root.title('Control de mascotas')

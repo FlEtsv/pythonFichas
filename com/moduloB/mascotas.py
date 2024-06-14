@@ -82,13 +82,24 @@ Crear un método llamado añadir_historial que reciba una fecha, un motivo y una
 """
 
 
-def añadir_historial(animal, fecha, motivo, descripcion):
-    animal.historial_medico.append({
-        'fecha': fecha,
-        'motivo': motivo,
-        'descripcion': descripcion
-    })
+def guardar_datos(animal):
+    datos = {
+        "nombre_dueño": animal.nombre_dueño,
+        "dni_dueño": animal.dni_dueño,
+        "nombre": animal.nombre,
+        'tipo': animal.TipoAnimal,
+        "raza": animal.raza,
+        "edad": animal.edad,
+        "historial_medico": animal.historial_medico  # Añadir esta línea
+    }
 
+    if not os.path.exists('fichas_animal'):
+        os.makedirs('fichas_animal')
+
+    ficha_animal = os.path.join('fichas_animal', f'{animal.nombre}.json')
+
+    with open(ficha_animal, 'w') as f:
+        json.dump(datos, f)
 
 def mostrar_historial_medico(nombre):
     animal = Animal.cargar_datos(nombre)
@@ -106,23 +117,15 @@ def mostrar_historial_medico(nombre):
     else:
         print('No se encontró un animal con ese nombre')
 
-    # guardar datos animal
 
 
-def guardar_datos(animal):
-    datos = {
-        "nombre_dueño": animal.nombre_dueño,
-        "dni_dueño": animal.dni_dueño,
-        "nombre": animal.nombre,
-        'tipo': animal.TipoAnimal,
-        "raza": animal.raza,
-        "edad": animal.edad
-    }
+def añadir_historial(animal, fecha, motivo, descripcion):
+    if not hasattr(animal, 'historial_medico'):
+        animal.historial_medico = []
+    animal.historial_medico.append({
+        'fecha': fecha,
+        'motivo': motivo,
+        'descripcion': descripcion
+    })
+    guardar_datos(animal)
 
-    if not os.path.exists('fichas_animal'):
-        os.makedirs('fichas_animal')
-
-    ficha_animal = os.path.join('fichas_animal', f'{animal.nombre}.json')
-
-    with open(ficha_animal, 'w') as f:
-        json.dump(datos, f)
