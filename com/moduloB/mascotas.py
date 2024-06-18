@@ -9,6 +9,7 @@ Crear una función llamada mostrar_ficha que reciba el nombre de un archivo json
 
 
 class Animal:
+
     instances = []
 
     def __init__(self, nombre_dueño, dni_dueño, nombre, TipoAnimal, raza, edad):
