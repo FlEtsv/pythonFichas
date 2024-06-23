@@ -2,7 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 from com.moduloB import mascotas
 
-def Añadir_historial_medico(animal):
+def actualizar_listbox(dates, listbox):
+    listbox.delete(0, tk.END)
+    if hasattr(dates, 'historial_medico') and dates.historial_medico:
+        for i, registro in enumerate(dates.historial_medico, 1):
+            listbox.insert(i, f'Fecha: {registro["fecha"]}')
+    else:
+        listbox.insert(0, 'No hay historial médico')
+
+def Añadir_historial_medico(animal, listbox):
     def añadir_registro():
         fecha = entry_fecha.get()
         motivo = entry_motivo.get()
@@ -15,6 +23,7 @@ def Añadir_historial_medico(animal):
         mascotas.añadir_historial(animal, fecha, motivo, descripcion)
         print('Registro añadido con éxito')
         mascotas.cargar_fichas_a_clase()
+        actualizar_listbox(animal, listbox)
         window.destroy()
 
     window = tk.Toplevel()

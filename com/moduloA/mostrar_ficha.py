@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-from com.moduloA.añadir_historia import Añadir_historial_medico
+from com.moduloA.auxiliarViews.añadir_historia import Añadir_historial_medico
+from com.moduloA.citas_Medicas import citas_medicas
 from com.moduloB import mascotas
 
 def mostrar_Ficha_Animal(entry_dni_dueño, entry_nombre):
@@ -17,23 +18,35 @@ def mostrar_Ficha_Animal(entry_dni_dueño, entry_nombre):
 
     if dates is not None:
         # Primera columna
-        tk.Label(window, text=f'Nombre: {dates.nombre}').grid(row=0, column=0, padx=10, pady=10)
-        tk.Label(window, text=f'Raza: {dates.raza}').grid(row=1, column=0, padx=10, pady=10)
-        tk.Label(window, text=f'Edad: {dates.edad}').grid(row=2, column=0, padx=10, pady=10)
+        tk.Label(window, text=f'Nombre: {dates.nombre}').grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        tk.Label(window, text=f'Raza: {dates.raza}').grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        tk.Label(window, text=f'Edad: {dates.edad}').grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
-        tk.Label(window, text='Historial Médico:').grid(row=3, column=0, padx=10, pady=10)
+        tk.Label(window, text='Historial Médico:').grid(row=3, column=0, padx=10, pady=10, sticky="w")
         listbox = tk.Listbox(window)
-        listbox.grid(row=4, column=0, padx=10, pady=10)
+        listbox.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
         # Segunda columna
-        registro_label = tk.Label(window, text='')
-        registro_label.grid(row=0, column=1, padx=10, pady=10)
+        motivo_label = tk.Label(window, text='')
+        motivo_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
-        button_añadir_historial = ttk.Button(window, text="Añadir historial", command=lambda: Añadir_historial_medico(dates))
-        button_añadir_historial.grid(row=3, column=1, padx=10, pady=10)
+        descripcion_label = tk.Label(window, text='')
+        descripcion_label.grid(row=1, column=1, padx=10, pady=10, sticky="w")
 
-        button_eliminar_historial = ttk.Button(window, text="Eliminar historial", command=lambda: eliminar_historial(dates, listbox))
-        button_eliminar_historial.grid(row=4, column=1, padx=10, pady=10)
+        #Botones
+
+        button_añadir_historial = ttk.Button(window, text="Añadir historial",
+                                             command=lambda: Añadir_historial_medico(dates, listbox))
+        button_añadir_historial.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+
+        button_eliminar_historial = ttk.Button(window, text="Eliminar historial",
+                                               command=lambda: eliminar_historial(dates, listbox))
+        button_eliminar_historial.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+
+        button_citas_medicas = ttk.Button(window, text="Citas",
+                                          command=lambda: citas_medicas(dates))
+
+        button_citas_medicas.grid(row=5, column=2, padx=10, pady=10, sticky="w")
 
         if hasattr(dates, 'historial_medico') and dates.historial_medico:
             for i, registro in enumerate(dates.historial_medico, 1):
@@ -46,7 +59,9 @@ def mostrar_Ficha_Animal(entry_dni_dueño, entry_nombre):
             if index:
                 index = index[0]
                 registro = dates.historial_medico[index]
-                registro_label['text'] = f'\nMotivo: {registro["motivo"]}\nDescripción: {registro["descripcion"]}'
+                # Actualizar el contenido de los labels
+                motivo_label.config(text=f'Motivo: {registro["motivo"]}')
+                descripcion_label.config(text=f'Descripción: {registro["descripcion"]}')
 
         listbox.bind('<<ListboxSelect>>', on_select)
 
@@ -57,7 +72,8 @@ def mostrar_Ficha_Animal(entry_dni_dueño, entry_nombre):
                 del dates.historial_medico[index]
                 mascotas.guardar_datos(dates)
                 listbox.delete(index)
-                registro_label['text'] = ''
-    else:
-        tk.Label(window, text='No se encontró un animal con ese nombre').grid(row=0, column=0, padx=10, pady=10)
+                motivo_label.config(text='')
+                descripcion_label.config(text='')
 
+    else:
+        tk.Label(window, text='No se encontró un animal con ese nombre').grid(row=0, column=0, padx=10, pady=10, sticky="w")
